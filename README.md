@@ -1,5 +1,8 @@
 # Text Generation with LLMs from node.js 
 
+![8d783373-5607-4195-b36f-cfce3fc46159](https://github.com/user-attachments/assets/02e9eaad-caa9-4113-b4f1-22833abfd547)
+
+
 This project demonstrates how to use the different LLMs for text generation using the `@xenova/transformers` library or the `@huggingface/transformers` library.
 
 ## Prerequisites
