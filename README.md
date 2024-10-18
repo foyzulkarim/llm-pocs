@@ -1,6 +1,6 @@
-# Text Generation with Llama2
+# Text Generation with LLMs from node.js 
 
-This project demonstrates how to use the Llama2 model for text generation using the `@xenova/transformers` library or the `@huggingface/transformers` library.
+This project demonstrates how to use the different LLMs for text generation using the `@xenova/transformers` library or the `@huggingface/transformers` library.
 
 ## Prerequisites
 
