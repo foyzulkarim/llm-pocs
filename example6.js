@@ -13,13 +13,16 @@ const repoPath = '/home/foyzul/personal/public-repo/react/packages';
 
 // Function to get all files with allowed extensions in the repository
 async function getJsFiles(dirPath, allowedExtensions = ['.js', '.jsx', '.ts', '.tsx']) {
+  const ignoredDirs = ['tests', '__tests__', 'node_modules', 'dist', 'build', 'coverage'];
   const entries = await fs.promises.readdir(dirPath, { withFileTypes: true });
 
   const files = entries
     .filter(entry => !entry.isDirectory())
     .map(entry => path.join(dirPath, entry.name));
 
-  const folders = entries.filter(entry => entry.isDirectory());
+  const folders = entries
+    .filter(entry => entry.isDirectory())
+    .filter(folder => !ignoredDirs.includes(folder.name));  // Filter out ignored directories
 
   for (const folder of folders) {
     files.push(...await getJsFiles(path.join(dirPath, folder.name), allowedExtensions));
