@@ -27,8 +27,8 @@ const run = async () => {
 };
 
 const runVllmOpenAI = async () => {
-  const endpoint = 'http://192.168.4.28:8000/v1/completions';
-  const model = 'Qwen/Qwen2.5-Coder-3B-Instruct';
+  const endpoint = 'http://192.168.4.28:8000/v1/chat/completions';
+  const model = 'OpenGVLab/InternVL2_5-1B';
   const prompt = 'Explain how the internet works';
 
   const instance = autocannon({
@@ -39,7 +39,17 @@ const runVllmOpenAI = async () => {
     },
     body: JSON.stringify({
       model: model,
-      prompt: prompt,
+      messages: [
+        {
+          role: "user",
+          content: [
+            {
+              type: "text",
+              text: prompt
+            }
+          ]
+        }
+      ]
     }),
     connections: 5, // Number of concurrent connections
     duration: 15     // Duration of the test in seconds

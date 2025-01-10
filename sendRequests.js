@@ -8,8 +8,14 @@ const ollama = {
 };
 
 const vllmOpenAI = {
-    endpoint: 'http://localhost:8000/v1/completions',
+    endpoint: 'http://localhost:8000/v1/chat/completions',
     model: 'Qwen/Qwen2.5-3B-Instruct',
+    maxTokens: 500
+};
+
+const internVL = {
+    endpoint: 'http://192.168.4.28:8000/v1/chat/completions',
+    model: 'OpenGVLab/InternVL2_5-1B',
     maxTokens: 500
 };
 
@@ -38,12 +44,37 @@ function sendCurlRequest({
     });
 }
 
+function sendCurlRequest2({
+    endpoint,
+    model,
+    maxTokens,
+    prompt,
+    id
+}) {
+    const start = new Date().getTime();
+    console.log(`Request ${id} sent at: ${new Date().toISOString()}`);
+    return new Promise((resolve, reject) => {
+        exec(`curl --max-time 300 \
+        -X POST ${endpoint} \
+        -H "Content-Type: application/json" \
+        -d '{"model":"${model}","messages":[{"role":"user","content":[{"type":"text","text":"${prompt}"}]}],"stream":false, "max_tokens": ${maxTokens}}'`, (error, stdout, stderr) => {
+            console.log(`Request ${id} received at: ${new Date().toISOString()}`, { prompt });
+            const diff = new Date().getTime() - start;
+            console.log(`Request ${id} took ${diff} ms for token count: ${stdout.length}`);
+            if (error) {
+                reject(error);
+            }
+            resolve(stdout);
+        });
+    });
+}
+
 const requestPromises = [];
-const payload = vllmOpenAI;
+const payload = internVL;
 const totalStart = new Date().getTime();
 console.log('Sending requests', payload);
 for (let i = 0; i < prompts.length; i++) {
-    requestPromises.push(sendCurlRequest({
+    requestPromises.push(sendCurlRequest2({
         id: i + 1,
         prompt: prompts[i],
         ...payload

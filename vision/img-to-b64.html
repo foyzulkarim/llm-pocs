@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Image to Base64 and Analyze</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        #preview {
+            margin-top: 20px;
+        }
+        #preview img {
+            max-width: 100%;
+            height: auto;
+        }
+        #base64Output, #responseOutput {
+            width: 100%;
+            height: 150px;
+            margin-top: 10px;
+        }
+        #analyzeButton {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 16px;
+        }
+        #responseContainer {
+            margin-top: 30px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Image to Base64 and Analyze</h1>
+    <input type="file" id="imageInput" accept="image/*">
+    
+    <div id="preview">
+        <h2>Preview:</h2>
+        <img id="imagePreview" src="" alt="Image Preview">
+    </div>
+    
+    <div id="base64Container">
+        <h2>Base64 String:</h2>
+        <textarea id="base64Output" readonly></textarea>
+    </div>
+
+    <button id="analyzeButton" disabled>Analyze</button>
+
+    <div id="responseContainer">
+        <h2>Analysis Response:</h2>
+        <textarea id="responseOutput" readonly></textarea>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const imageInput = document.getElementById('imageInput');
+            const imagePreview = document.getElementById('imagePreview');
+            const base64Output = document.getElementById('base64Output');
+            const analyzeButton = document.getElementById('analyzeButton');
+            const responseOutput = document.getElementById('responseOutput');
+
+            let currentBase64 = '';
+
+            imageInput.addEventListener('change', function(event) {
+                const file = event.target.files[0];
+
+                if (file) {
+                    // Validate file type
+                    if (!file.type.startsWith('image/')) {
+                        alert('Please select a valid image file.');
+                        return;
+                    }
+
+                    // Display image preview
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        imagePreview.src = e.target.result;
+                    };
+                    reader.readAsDataURL(file);
+
+                    // Convert image to Base64
+                    convertImageToBase64(file)
+                        .then(base64String => {
+                            currentBase64 = base64String;
+                            base64Output.value = base64String;
+                            analyzeButton.disabled = false; // Enable the Analyze button
+                        })
+                        .catch(error => {
+                            console.error('Error converting image to Base64:', error);
+                            alert('Failed to convert image.');
+                        });
+                } else {
+                    // Reset if no file is selected
+                    imagePreview.src = '';
+                    base64Output.value = '';
+                    analyzeButton.disabled = true;
+                    responseOutput.value = '';
+                    currentBase64 = '';
+                }
+            });
+
+            analyzeButton.addEventListener('click', () => {
+                if (!currentBase64) {
+                    alert('No image selected.');
+                    return;
+                }
+
+                // Define the payload
+                const payload = {
+                    model: "minicpm-v",
+                    prompt: "What is in this picture?",
+                    stream: false,
+                    images: [currentBase64]
+                };
+
+                // Send the HTTP POST request
+                fetch('http://192.168.4.28:11435/api/generate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`Server responded with status ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // Display the response
+                    responseOutput.value = JSON.stringify(data, null, 2);
+                })
+                .catch(error => {
+                    console.error('Error during analysis:', error);
+                    alert('Failed to analyze the image. Please check the console for more details.');
+                });
+            });
+
+            /**
+             * Converts an image file to a Base64 string.
+             * @param {File} file - The image file to convert.
+             * @returns {Promise<string>} - A promise that resolves to the Base64 string.
+             */
+            function convertImageToBase64(file) {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+
+                    reader.onload = function() {
+                        const result = reader.result;
+                        // The result is a Data URL: "data:<mime-type>;base64,<data>"
+                        // To get only the Base64 part, split the string
+                        const base64String = result.split(',')[1];
+                        resolve(base64String);
+                    };
+
+                    reader.onerror = function(error) {
+                        reject(error);
+                    };
+
+                    reader.readAsDataURL(file);
+                });
+            }
+        });
+    </script>
+</body>
+</html>
