@@ -83,7 +83,12 @@ for (let i = 0; i < prompts.length; i++) {
 
 Promise.all(requestPromises)
     .then(responses => {
-        responses.forEach(response => console.log(response.length));
+        responses.forEach((response, index) => {
+            console.log('--------------------------------');
+            console.log(`Prompt ${index + 1}: ${prompts[index]}\n`);
+            console.log(response);
+            console.log('--------------------------------');
+        });
         const totalDiff = new Date().getTime() - totalStart;
         const timeInSec = totalDiff / 1000;
         console.log(`Total time taken: ${timeInSec} s, total prompt handled ${prompts.length}, responses received: ${responses.length}`);
